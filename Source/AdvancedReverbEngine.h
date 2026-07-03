@@ -85,8 +85,13 @@ public:
                  const Parameters& params)
     {
         const int numSamples = input.getNumSamples();
-        wet.setSize(2, numSamples, false, false, true);
-        wet.clear();
+        jassert(wet.getNumChannels() >= 2);
+        jassert(wet.getNumSamples() >= numSamples);
+        if (wet.getNumChannels() < 2 || wet.getNumSamples() < numSamples)
+            return;
+
+        wet.clear(0, 0, numSamples);
+        wet.clear(1, 0, numSamples);
 
         if (numSamples <= 0 || predelay[0].empty())
             return;

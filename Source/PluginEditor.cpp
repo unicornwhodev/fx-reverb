@@ -53,6 +53,9 @@ MusiqueReverbEditor::MusiqueReverbEditor(MusiqueReverbProcessor& p)
     setupBtn(freezeBtn, true);
     setupBtn(monoBtn, true);
     setupBtn(trimBtn);
+    bypassBtn.setTooltip("Bypass dry signal");
+    freezeBtn.setTooltip("Hold the reverb tail");
+    monoBtn.setTooltip("Fold input before reverb");
     trimBtn.setTooltip("Internal wet trim and ducking status");
     trimBtn.onClick = [] {};
 
@@ -64,20 +67,22 @@ MusiqueReverbEditor::MusiqueReverbEditor(MusiqueReverbProcessor& p)
 
     algorithmBox.addItemList(juce::StringArray { "Room", "Plate", "Hall", "Chamber", "Space" }, 1);
     qualityBox.addItemList(juce::StringArray { "Eco", "Studio", "High" }, 1);
+    algorithmBox.setTooltip("Reverb algorithm");
+    qualityBox.setTooltip("Render quality");
     addAndMakeVisible(algorithmBox);
     addAndMakeVisible(qualityBox);
 
     presets = std::make_shared<juce::Array<juce::var>>(fx::preset::loadAllPresets("fx-reverb"));
+    for (auto& preset : *presets)
+        MusiqueReverbProcessor::normalisePresetObject(preset);
     refreshPresetBox();
-    if (!presets->isEmpty())
-        fx::preset::applyToAPVTS(proc.getAPVTS(), presets->getReference(0));
 
     presetBox.onChange = [this] {
         int i = presetBox.getSelectedItemIndex();
         if (i >= 0 && i < presets->size())
         {
             storeCurrentABSlot();
-            fx::preset::applyToAPVTS(proc.getAPVTS(), presets->getReference(i));
+            proc.applyPresetCompat(presets->getReference(i));
             abStateA = proc.getAPVTS().copyState();
             abStateB = abStateA.createCopy();
             showingA = true;
@@ -88,15 +93,12 @@ MusiqueReverbEditor::MusiqueReverbEditor(MusiqueReverbProcessor& p)
     nextBtn.onClick = [this] { int i = presetBox.getSelectedItemIndex(); if (i < presetBox.getNumItems() - 1) presetBox.setSelectedItemIndex(i + 1); };
     saveBtn.onClick = [this] {
         auto name = juce::String("User_") + juce::Time::getCurrentTime().formatted("%H%M%S");
-        juce::StringArray ids {
-            "algorithm","size","decay","predelay","damping","width","mix",
-            "early_level","tail_level","diffusion","low_cut","high_cut",
-            "mod_depth","mod_rate","ducking","ducking_release","quality",
-            "output","bypass","freeze","mono"
-        };
+        const auto ids = MusiqueReverbProcessor::getAllParameterIds();
         if (fx::preset::saveUserPreset("fx-reverb", name, ids, proc.getAPVTS()))
         {
             *presets = fx::preset::loadAllPresets("fx-reverb");
+            for (auto& preset : *presets)
+                MusiqueReverbProcessor::normalisePresetObject(preset);
             refreshPresetBox();
             presetBox.setSelectedItemIndex(presetBox.getNumItems() - 1);
         }
@@ -113,6 +115,13 @@ MusiqueReverbEditor::MusiqueReverbEditor(MusiqueReverbProcessor& p)
     for (int i = 0; i < numKnobs; ++i)
         setupSlider(knobs[i], knobLabels[i], labels[i]);
 
+    const char* tooltips[numKnobs] = {
+        "Room scale", "Reflection density", "Initial delay", "Tail length", "Early reflections", "Tail level",
+        "Low cut", "High cut", "High-frequency damping", "Modulation depth", "Modulation rate", "Wet mix", "Ducking amount"
+    };
+    for (int i = 0; i < numKnobs; ++i)
+        knobs[i].setTooltip(tooltips[i]);
+
     const char* groups[5] = { "SPACE", "TIME", "TONE", "MOTION", "MIX" };
     for (int i = 0; i < 5; ++i)
     {
@@ -127,11 +136,12 @@ MusiqueReverbEditor::MusiqueReverbEditor(MusiqueReverbProcessor& p)
     addAndMakeVisible(outMeter);
     outputSlider.setSliderStyle(juce::Slider::LinearHorizontal);
     outputSlider.setTextBoxStyle(juce::Slider::NoTextBox, true, 0, 0);
+    outputSlider.setTooltip("Output gain");
     addAndMakeVisible(outputSlider);
 
     freezeLED.setAccent(fx::accent::reverb);
     addAndMakeVisible(freezeLED);
-    versionLabel.setText("Musique Reverb v2.0", juce::dontSendNotification);
+    versionLabel.setText(juce::String("Musique Reverb ") + JucePlugin_VersionString, juce::dontSendNotification);
     versionLabel.setFont(juce::Font(juce::FontOptions{}.withHeight(fx::font::footer)));
     versionLabel.setColour(juce::Label::textColourId, fx::col::textMuted);
     versionLabel.setJustificationType(juce::Justification::centredRight);
@@ -183,7 +193,7 @@ void MusiqueReverbEditor::refreshPresetBox()
     if (presets->isEmpty())
     {
         presetBox.addItem("Init", 1);
-        presetBox.setSelectedId(1, juce::dontSendNotification);
+        presetBox.setTextWhenNothingSelected("Init");
         return;
     }
 
@@ -191,7 +201,7 @@ void MusiqueReverbEditor::refreshPresetBox()
     for (auto& pv : *presets)
         if (auto* o = pv.getDynamicObject())
             presetBox.addItem(o->getProperty("name").toString(), id++);
-    presetBox.setSelectedItemIndex(0, juce::dontSendNotification);
+    presetBox.setTextWhenNothingSelected("Manual State");
 }
 
 void MusiqueReverbEditor::storeCurrentABSlot()
