@@ -1,3 +1,32 @@
+<!-- UWDEVST-SHOWCASE:START -->
+<p align="center">
+  <img src="docs/social-preview.jpg" width="960" alt="Musique Reverb — UWdeVST collection artwork" />
+</p>
+
+<h1 align="center">Musique Reverb</h1>
+
+<p align="center"><strong>Another dimension.</strong><br />From a close room to open space, place every sound in a setting of its own.</p>
+
+<p align="center">
+  <a href="https://unicorsoundengine.com/en/plugins/fx-reverb#listen">Listen</a> ·
+  <a href="https://unicorsoundengine.com/en/plugins/fx-reverb#install">Download</a> ·
+  <a href="https://unicorsoundengine.com/en">Full collection</a> ·
+  <a href="https://github.com/unicornwhodev/fx-reverb/issues/new/choose">Report an issue</a>
+</p>
+
+**Windows x64 · VST3 · Standalone**
+
+- Room, Plate, Hall, Chamber and Space
+- Size, diffusion, pre-delay and ducking
+- Eco, Studio and High modes
+
+> **Publicly viewable source — proprietary license.** Official binaries are free for individuals and organizations with no more than EUR 100,000 in worldwide consolidated gross revenue. Modification and redistribution are not permitted. Professional use above that threshold requires a paid written license. [Read the license](https://unicorsoundengine.com/en/license) or [request a commercial license](https://unicorsoundengine.com/en/contact).
+
+The license included with each tagged release governs that release. The v1.0 license applies prospectively and does not withdraw permissions already granted on earlier releases.
+<!-- UWDEVST-SHOWCASE:END -->
+
+---
+
 # Musique Reverb
 
 Musique Reverb is a Windows ambience and space effect for room, plate, hall, chamber and spacious reverb sounds. It is available as a Standalone application and a VST3 plug-in.
@@ -67,4 +96,4 @@ The script creates a portable Windows package and, when Inno Setup 6 is installe
 
 ## Licence and support
 
-This project is source-available, not open source. See [LICENSE.md](LICENSE.md) for the permitted use of source and binaries. For a released-build issue, open an issue with the Windows version, host name/version, plug-in format and steps to reproduce it.
+The source code is publicly viewable under a proprietary license. Viewing and private compilation of strictly unchanged source are permitted; modification and redistribution are not. See [LICENSE.md](LICENSE.md). For a released-build issue, open an issue with the Windows version, host name/version, plug-in format and steps to reproduce it.
